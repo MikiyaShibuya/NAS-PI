@@ -1,4 +1,9 @@
 # NAS for Apple Time Machine (LAN)
+This is an instruction to build Time Machine server in LAN using Raspberry Pi
+Reference： https://stash4.hatenablog.com/entry/2018/06/17/184423
+
+## Disclaimer
+Although I have confirmed that the backup data can be restored successfully, please operate at your own risk.
 
 ## Requirement
 
