@@ -1,5 +1,5 @@
 # NAS for Apple Time Machine (LAN)
-This is an instruction to build Time Machine server in LAN using Raspberry Pi
+This is an instruction to build Time Machine server in LAN using Raspberry Pi  
 Reference： https://stash4.hatenablog.com/entry/2018/06/17/184423
 
 ## Disclaimer
@@ -38,20 +38,39 @@ Update package
 
 Edit environment setup (anything as you want)
 > sudo apt install -y zsh neovim tmux  
-> chsh -s /usr/bin/zsh  
 > git clone https://github.com/MikiyaShibuya/dotfiles.git  
 > cd dotfiles && ./setup.sh
+
+### Fix IP address
+
+Edit /etc/dhcpcd.conf to fix local IP address.  
+Uncomment and edit like this according to your environment.  
+Make sure routers and DNS server are right to prevent network issues after that.
+> \# Example static IP configuration:  
+> interface eth0  
+> static ip_address=192.168.1.xx/24  
+> static routers=192.168.1.1  
+> static domain_name_servers=192.168.1.1 8.8.8.8  
+
 
 ### Mount HDD
 
 (using `/mnt/TimeMachine` in this instruction, please edit smb.conf when you using different directory)
 
-Find device
-> sudo fdisk -l
+Find device and get UUID of HDD
+> sudo blkid  
+> \# /dev/sda1: LABEL="BUFFALO_HDD" UUID=“9da1c321-xxxx-xxxx-xxxx-xxxxxxxx9da8" TYPE="ext4"
 
-Mount HDD with accessible option
-> sudo mkdir /mnt/TimeMachine  
-> sudo mount [drive] /mnt/TimeMachine -t exfat --options=rw
+Then, write mount setting and check if the HDD was mounted correctly
+> sudo sh -c 'echo "UUID=9da1c321-xxxx-xxxx-xxxx-xxxxxxxx9da8 /mnt/TimeMachine ext4 nofail 0 0" >> /etc/fstab'  
+> sudo mount -a
+
+<< CAUTION >>  
+If you failed to mount, some message like this
+`mount: /mnt/TimeMachine: mount point does not exist.`
+will be displayed.
+Fix this error BEFORE REBOOTING or your OS will be broken.
+
 
 #### Trouble Shooting
 
@@ -64,19 +83,25 @@ Re-mounting the HDD may fix the issue.
 ### Samba Setup
 
 Install samba and avahi-daemon (for enabling mDNS)  
-This smb ID will be required when setting up Time Machine
-> sudo apt install -y samba avahi-daemon  
-> sudo smbpasswd -a [username]
+This password will be required when setting up Time Machine
+> sudo apt install -y samba avahi-daemon \# select NO when asked to generate config  
+> sudo smbpasswd -a $USER
 
 Configure smb daemon
 > mkdir ~/work && cd work  
 > git clone https://github.com/MikiyaShibuya/NAS-PI.git  
 > cd NAS-PI  
 > sudo sh -c 'cat smb.conf >> /etc/samba/smb.conf'  
-> sudo cat smb.conf >> /etc/samba/smb.conf  
 > sudo ln -s $PWD/samba.service /etc/avahi/services/samba.service  
+
+Start samba daemon
 > sudo systemctl start smbd  
 > sudo systemctl start avahi-daemon
+
+Check if the samba was launched correctly
+> sudo systemctl status smbd  
+> sudo systemctl status avahi-daemon
+
 
 ## Connect to NAS from mac
 
