@@ -1,0 +1,3 @@
+SMB_USER=nas
+SMB_PASSWD=passwd
+TZ=/Asia/Tokyo
