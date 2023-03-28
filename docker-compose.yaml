@@ -1,20 +1,15 @@
 version: "3.8"
 services:
   samba:
-    image: dperson/samba
-    environment:
-      TZ: '${TZ}'
-    networks:
-      - default
-    read_only: true
+    build:
+      context: .
+      args:
+        SMB_USER: '${SMB_USER}'
+        SMB_PASSWD: '${SMB_PASSWD}'
+        TZ: '${TZ}'
     ports:
       - "139:139/tcp"
       - "445:445/tcp"
-    tmpfs:
-      - /tmp
-    stdin_open: true
-    tty: true
     volumes:
-      - /mnt/TimeMachine:/mount:z
+      - /mnt/TimeMachine:/mnt/TimeMachine:z
     restart: unless-stopped
-    command: '-u "${SMB_USER};${SMB_PASSWD}" -s "NAS_VOLUME;/mount;yes;no;no;${SMB_USER}" -p'
